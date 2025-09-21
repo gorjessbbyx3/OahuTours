@@ -480,7 +480,12 @@ export default function AdminDashboard() {
                     );
                   })()}
                 </div>
-                <Button variant="outline" className="w-full mt-4" data-testid="button-clover-dashboard">
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4" 
+                  data-testid="button-clover-dashboard"
+                  onClick={() => window.open('/api/clover/dashboard', '_blank')}
+                >
                   View Clover Dashboard
                 </Button>
               </CardContent>

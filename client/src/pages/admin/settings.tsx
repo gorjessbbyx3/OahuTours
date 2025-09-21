@@ -125,6 +125,7 @@ export default function AdminSettings() {
   const handleTestConnection = async () => {
     const cloverAppId = form.getValues('cloverAppId');
     const cloverApiToken = form.getValues('cloverApiToken');
+    const environment = form.getValues('cloverEnvironment');
     
     if (!cloverAppId || !cloverApiToken) {
       toast({
@@ -137,23 +138,46 @@ export default function AdminSettings() {
 
     setTestConnectionStatus('testing');
     
-    // Simulate connection test - in real implementation, this would call Clover API
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock success - in real app, this would validate the credentials with Clover
-      setTestConnectionStatus('success');
-      toast({
-        title: "Connection Successful",
-        description: "Successfully connected to Clover payment system.",
+      // Test connection with a small test payment
+      const response = await apiRequest("POST", "/api/create-clover-payment", {
+        amount: 100, // $1.00 test
+        currency: "usd",
+        card: {
+          number: "4111111111111111", // Clover test card
+          exp_month: "12",
+          exp_year: "2025",
+          cvv: "123",
+        },
+        billing: {
+          name: "Test Connection",
+        },
+        test: true, // Mark as test transaction
       });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setTestConnectionStatus('success');
+        toast({
+          title: "Connection Successful",
+          description: "Successfully connected to Clover payment system.",
+        });
+      } else {
+        setTestConnectionStatus('error');
+        toast({
+          title: "Connection Failed",
+          description: result.error || "Unable to connect to Clover. Please check your credentials.",
+          variant: "destructive",
+        });
+      }
       
       setTimeout(() => setTestConnectionStatus('idle'), 3000);
     } catch (error) {
       setTestConnectionStatus('error');
       toast({
         title: "Connection Failed",
-        description: "Unable to connect to Clover. Please check your credentials.",
+        description: "Unable to connect to Clover. Please check your credentials and network connection.",
         variant: "destructive",
       });
       

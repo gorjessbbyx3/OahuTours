@@ -12,7 +12,7 @@ import {
   boolean,
   pgEnum
 } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
 import { z } from "zod";
 
 // Session storage table for Replit Auth
@@ -149,19 +149,14 @@ export const insertCustomTourSchema = createInsertSchema(customTours).omit({
   updatedAt: true,
 });
 
-export const insertSettingsSchema = createInsertSchema(settings).omit({
-  id: true,
-  updatedAt: true,
+export const insertSettingsSchema = createInsertSchema(settings).extend({
+  cloverEnvironment: z.enum(['sandbox', 'production']).default('sandbox'),
+  cloverApiToken: z.string().optional(),
+  cloverAppId: z.string().optional(),
 });
 
+export const selectSettingsSchema = createSelectSchema(settings);
+
 // Types
-export type UpsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-export type InsertTour = z.infer<typeof insertTourSchema>;
-export type Tour = typeof tours.$inferSelect;
-export type InsertBooking = z.infer<typeof insertBookingSchema>;
-export type Booking = typeof bookings.$inferSelect;
-export type InsertCustomTour = z.infer<typeof insertCustomTourSchema>;
-export type CustomTour = typeof customTours.$inferSelect;
+export type Settings = z.infer<typeof selectSettingsSchema>;
 export type InsertSettings = z.infer<typeof insertSettingsSchema>;
-export type Settings = typeof settings.$inferSelect;

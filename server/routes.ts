@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertBookingSchema, insertCustomTourSchema, insertTourSchema, insertSettingsSchema } from "@shared/schema";
 import { z } from "zod";
+import { createCloverClient } from "@/server/cloverClient";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -65,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const date = new Date(req.params.date);
       const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
-      
+
       const bookings = await storage.getBookingsByDateRange(startOfDay, endOfDay);
       res.json(bookings);
     } catch (error) {
@@ -96,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const bookings = await storage.getBookings();
       res.json(bookings);
     } catch (error) {
@@ -111,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const validatedBooking = insertBookingSchema.parse(req.body);
       const booking = await storage.createBooking(validatedBooking);
       res.status(201).json(booking);
@@ -130,7 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const customTours = await storage.getCustomTours();
       res.json(customTours);
     } catch (error) {
@@ -145,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const tours = await storage.getTours();
       res.json(tours);
     } catch (error) {
@@ -160,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const validatedTour = insertTourSchema.parse(req.body);
       const tour = await storage.createTour(validatedTour);
       res.status(201).json(tour);
@@ -180,7 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const settings = await storage.getSettings();
       res.json(settings);
     } catch (error) {
@@ -195,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const validatedSettings = insertSettingsSchema.parse(req.body);
       const settings = await storage.updateSettings(validatedSettings);
       res.json(settings);
@@ -208,25 +209,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Payment integration placeholder
+  // Clover integration
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
-      const { amount } = req.body;
-      
-      // TODO: Implement Clover payment integration
-      // For now, return a mock response
-      const mockPaymentIntent = {
-        id: `pi_${Date.now()}`,
-        client_secret: `pi_${Date.now()}_secret`,
-        amount: Math.round(amount * 100),
+      const { amount, bookingId } = req.body;
+      const cloverClient = createCloverClient();
+
+      const paymentIntent = await cloverClient.createPaymentIntent({
+        amount: Math.round(amount * 100), // Clover expects amount in cents
         currency: "usd",
-        status: "requires_payment_method",
-      };
-      
-      res.json({ clientSecret: mockPaymentIntent.client_secret });
+        orderId: bookingId,
+      });
+
+      res.json({ clientSecret: paymentIntent.client_secret });
     } catch (error) {
       console.error("Error creating payment intent:", error);
       res.status(500).json({ message: "Error creating payment intent" });
+    }
+  });
+
+  app.post("/api/clover/webhook", async (req, res) => {
+    try {
+      const cloverClient = createCloverClient();
+      const event = await cloverClient.verifyWebhookSignature(req.body, req.headers['x-cc-webhook-signature']);
+
+      switch (event.type) {
+        case 'payment.captured':
+          // Handle payment captured event
+          await storage.updateBookingStatus(event.data.order_id, "paid");
+          break;
+        case 'payment.failed':
+          // Handle payment failed event
+          await storage.updateBookingStatus(event.data.order_id, "failed");
+          break;
+        // Add more event types as needed
+        default:
+          console.log(`Received unhandled event type: ${event.type}`);
+      }
+
+      res.status(200).send("Webhook received");
+    } catch (error) {
+      console.error("Error handling Clover webhook:", error);
+      res.status(500).json({ message: "Error handling webhook" });
+    }
+  });
+
+  app.get("/api/admin/clover/test-connection", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const cloverClient = createCloverClient();
+      await cloverClient.testConnection(); // Assuming testConnection is a method on CloverClient
+
+      res.status(200).json({ message: "Clover connection successful" });
+    } catch (error) {
+      console.error("Error testing Clover connection:", error);
+      res.status(500).json({ message: "Failed to connect to Clover" });
+    }
+  });
+
+  app.get("/api/admin/clover/dashboard", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const settings = await storage.getSettings();
+      if (!settings?.clover?.merchantId || !settings?.clover?.apiKey) {
+        return res.status(400).json({ message: "Clover not configured. Please set up your Clover credentials in admin settings." });
+      }
+
+      const cloverClient = createCloverClient();
+      const dashboardUrl = cloverClient.getDashboardUrl(); // Assuming getDashboardUrl exists
+
+      res.redirect(dashboardUrl); // Redirect to Clover dashboard
+    } catch (error) {
+      console.error("Error getting Clover dashboard URL:", error);
+      res.status(500).json({ message: "Failed to get Clover dashboard URL" });
     }
   });
 
