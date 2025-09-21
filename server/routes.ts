@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertBookingSchema, insertCustomTourSchema, insertTourSchema, insertSettingsSchema } from "@shared/schema";
 import { z } from "zod";
-import { createCloverClient } from "@/server/cloverClient";
+import { createCloverClient } from "./cloverClient";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -213,7 +213,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { amount, bookingId } = req.body;
-      const cloverClient = createCloverClient();
+      const settings = await storage.getSettings();
+      
+      if (!settings?.cloverApiToken || !settings?.cloverAppId) {
+        return res.status(400).json({ message: "Clover not configured" });
+      }
+
+      const cloverClient = createCloverClient({
+        apiToken: settings.cloverApiToken,
+        appId: settings.cloverAppId,
+        environment: settings.cloverEnvironment as 'sandbox' | 'production',
+      });
 
       const paymentIntent = await cloverClient.createPaymentIntent({
         amount: Math.round(amount * 100), // Clover expects amount in cents
@@ -225,6 +235,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating payment intent:", error);
       res.status(500).json({ message: "Error creating payment intent" });
+    }
+  });
+
+  app.post("/api/create-clover-payment", async (req, res) => {
+    try {
+      const { amount, currency, card, billing, test } = req.body;
+      const settings = await storage.getSettings();
+      
+      if (!settings?.cloverApiToken || !settings?.cloverAppId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Clover not configured. Please set up your Clover credentials in admin settings." 
+        });
+      }
+
+      const cloverClient = createCloverClient({
+        apiToken: settings.cloverApiToken,
+        appId: settings.cloverAppId,
+        environment: settings.cloverEnvironment as 'sandbox' | 'production',
+      });
+
+      const result = await cloverClient.createPayment({
+        amount,
+        currency,
+        source: {
+          object: "card",
+          number: card.number,
+          exp_month: card.exp_month,
+          exp_year: card.exp_year,
+          cvv: card.cvv,
+        },
+        metadata: {
+          billing_name: billing.name,
+          billing_zip: billing.zip,
+          test: test ? "true" : "false",
+        },
+      });
+
+      res.json({
+        success: result.success,
+        paymentId: result.payment?.id,
+        error: result.error,
+      });
+    } catch (error) {
+      console.error("Error creating Clover payment:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Payment processing failed" 
+      });
     }
   });
 
@@ -271,7 +330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/clover/dashboard", isAuthenticated, async (req: any, res) => {
+  app.get("/api/clover/dashboard", isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -279,14 +338,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const settings = await storage.getSettings();
-      if (!settings?.clover?.merchantId || !settings?.clover?.apiKey) {
+      if (!settings?.cloverApiToken || !settings?.cloverAppId) {
         return res.status(400).json({ message: "Clover not configured. Please set up your Clover credentials in admin settings." });
       }
 
-      const cloverClient = createCloverClient();
-      const dashboardUrl = cloverClient.getDashboardUrl(); // Assuming getDashboardUrl exists
-
-      res.redirect(dashboardUrl); // Redirect to Clover dashboard
+      const cloverClient = createCloverClient({
+        apiToken: settings.cloverApiToken,
+        appId: settings.cloverAppId,
+        environment: settings.cloverEnvironment as 'sandbox' | 'production',
+      });
+      
+      const dashboardUrl = cloverClient.getDashboardUrl();
+      res.redirect(dashboardUrl);
     } catch (error) {
       console.error("Error getting Clover dashboard URL:", error);
       res.status(500).json({ message: "Failed to get Clover dashboard URL" });

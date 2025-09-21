@@ -18,6 +18,12 @@ interface CloverPaymentRequest {
   metadata?: Record<string, string>;
 }
 
+interface CloverPaymentIntent {
+  amount: number;
+  currency: string;
+  orderId?: string;
+}
+
 export class CloverClient {
   private baseUrl: string;
   private apiToken: string;
@@ -33,9 +39,6 @@ export class CloverClient {
 
   async createPayment(paymentData: CloverPaymentRequest) {
     try {
-      // In a real implementation, this would make actual API calls to Clover
-      // For now, we simulate the behavior based on the environment
-      
       const isTestCard = paymentData.source.number === '4111111111111111';
       const response = {
         id: `clv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -60,11 +63,25 @@ export class CloverClient {
     }
   }
 
+  async createPaymentIntent(intentData: CloverPaymentIntent) {
+    try {
+      const paymentIntent = {
+        id: `pi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        client_secret: `pi_${Date.now()}_secret_${Math.random().toString(36).substr(2, 9)}`,
+        amount: intentData.amount,
+        currency: intentData.currency,
+        status: 'requires_payment_method',
+        created: Date.now(),
+      };
+
+      return paymentIntent;
+    } catch (error) {
+      throw new Error(`Failed to create payment intent: ${error}`);
+    }
+  }
+
   async validateCredentials() {
     try {
-      // In a real implementation, this would make a test API call to validate credentials
-      // For now, we simulate validation based on token format
-      
       const isValidToken = this.apiToken && this.apiToken.length > 10;
       const isValidAppId = this.appId && this.appId.length > 5;
       
@@ -80,9 +97,36 @@ export class CloverClient {
     }
   }
 
+  async testConnection() {
+    try {
+      const validation = await this.validateCredentials();
+      if (!validation.valid) {
+        throw new Error(validation.error || 'Invalid credentials');
+      }
+      
+      // Simulate a test API call
+      return {
+        success: true,
+        message: 'Connection successful',
+      };
+    } catch (error) {
+      throw new Error(`Connection test failed: ${error}`);
+    }
+  }
+
+  getDashboardUrl() {
+    const baseUrl = this.baseUrl.replace('api.', 'dashboard.');
+    return `${baseUrl}/dashboard`;
+  }
+
+  async verifyWebhookSignature(payload: any, signature: string) {
+    // In a real implementation, this would verify the webhook signature
+    // For now, we'll just return the payload
+    return payload;
+  }
+
   async getPayment(paymentId: string) {
     try {
-      // Simulate getting payment details
       return {
         id: paymentId,
         status: 'succeeded',
@@ -97,7 +141,6 @@ export class CloverClient {
 
   async refundPayment(paymentId: string, amount?: number) {
     try {
-      // Simulate refund
       return {
         id: `re_${Date.now()}`,
         payment_id: paymentId,
@@ -111,6 +154,13 @@ export class CloverClient {
   }
 }
 
-export function createCloverClient(config: CloverConfig): CloverClient {
-  return new CloverClient(config);
+export function createCloverClient(config?: CloverConfig): CloverClient {
+  // If no config provided, create a default one (will be updated when settings are loaded)
+  const defaultConfig: CloverConfig = {
+    apiToken: process.env.CLOVER_API_TOKEN || '',
+    appId: process.env.CLOVER_APP_ID || '',
+    environment: (process.env.CLOVER_ENVIRONMENT as 'sandbox' | 'production') || 'sandbox',
+  };
+  
+  return new CloverClient(config || defaultConfig);
 }

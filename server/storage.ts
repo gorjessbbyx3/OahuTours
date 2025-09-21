@@ -14,7 +14,7 @@ import {
   type InsertCustomTour,
   type Settings,
   type InsertSettings,
-} from "@shared/schema";
+} from "../shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, desc } from "drizzle-orm";
 
@@ -137,6 +137,13 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBooking(id: string): Promise<void> {
     await db.delete(bookings).where(eq(bookings.id, id));
+  }
+
+  async updateBookingStatus(bookingId: string, status: string): Promise<void> {
+    await db
+      .update(bookings)
+      .set({ paymentStatus: status as any, updatedAt: new Date() })
+      .where(eq(bookings.id, bookingId));
   }
 
   // Custom tour operations

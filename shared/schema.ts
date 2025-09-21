@@ -157,6 +157,20 @@ export const insertSettingsSchema = createInsertSchema(settings).extend({
 
 export const selectSettingsSchema = createSelectSchema(settings);
 
+// Select schemas
+export const selectUserSchema = createSelectSchema(users);
+export const selectTourSchema = createSelectSchema(tours);
+export const selectBookingSchema = createSelectSchema(bookings);
+export const selectCustomTourSchema = createSelectSchema(customTours);
+
 // Types
+export type User = z.infer<typeof selectUserSchema>;
+export type UpsertUser = z.infer<typeof insertUserSchema>;
+export type Tour = z.infer<typeof selectTourSchema>;
+export type InsertTour = z.infer<typeof insertTourSchema>;
+export type Booking = z.infer<typeof selectBookingSchema>;
+export type InsertBooking = z.infer<typeof insertBookingSchema>;
+export type CustomTour = z.infer<typeof selectCustomTourSchema>;
+export type InsertCustomTour = z.infer<typeof insertCustomTourSchema>;
 export type Settings = z.infer<typeof selectSettingsSchema>;
 export type InsertSettings = z.infer<typeof insertSettingsSchema>;

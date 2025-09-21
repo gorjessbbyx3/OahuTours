@@ -1,4 +1,3 @@
-
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import type { Booking } from "@shared/schema";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DayPicker } from "react-day-picker";
 
 interface BookingCalendarProps {
   onDateSelect?: (date: Date) => void;
@@ -58,7 +61,7 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Calendar
+        <DayPicker
           mode="single"
           selected={selectedDate}
           onSelect={onDateSelect}
@@ -66,21 +69,25 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
           onMonthChange={setCurrentMonth}
           className="rounded-md border"
           components={{
-            Day: ({ date, ...dayProps }) => {
-              const bookingCount = getDateBookingCount(date);
-              const isBooked = isDateBooked(date);
+            Day: ({ date, ...props }) => {
+              const isBookingDate = bookings?.some(booking => {
+                const bookingDate = new Date(booking.bookingDate);
+                return bookingDate.toDateString() === date.toDateString();
+              });
 
               return (
-                <div className="relative" data-testid={`calendar-day-${format(date, 'yyyy-MM-dd')}`}>
-                  <div {...dayProps} className={`${dayProps.className} ${isBooked ? 'bg-primary/10' : ''}`} />
-                  {showBookings && bookingCount > 0 && (
-                    <Badge 
-                      variant="secondary" 
-                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
-                      data-testid={`booking-count-${format(date, 'yyyy-MM-dd')}`}
-                    >
-                      {bookingCount}
-                    </Badge>
+                <div className="relative">
+                  <button
+                    {...props}
+                    className={cn(
+                      props.className,
+                      isBookingDate && "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                    )}
+                  >
+                    {date.getDate()}
+                  </button>
+                  {isBookingDate && (
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"></div>
                   )}
                 </div>
               );
