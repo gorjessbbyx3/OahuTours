@@ -1,3 +1,4 @@
+
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -65,13 +66,13 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
           onMonthChange={setCurrentMonth}
           className="rounded-md border"
           components={{
-            Day: ({ date, ...props }) => {
+            Day: ({ date, ...dayProps }) => {
               const bookingCount = getDateBookingCount(date);
               const isBooked = isDateBooked(date);
 
               return (
                 <div className="relative" data-testid={`calendar-day-${format(date, 'yyyy-MM-dd')}`}>
-                  <div {...props} className={`${props.className} ${isBooked ? 'bg-primary/10' : ''}`} />
+                  <div {...dayProps} className={`${dayProps.className} ${isBooked ? 'bg-primary/10' : ''}`} />
                   {showBookings && bookingCount > 0 && (
                     <Badge 
                       variant="secondary" 
