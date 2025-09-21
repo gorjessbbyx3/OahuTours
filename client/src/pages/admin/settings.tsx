@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Settings, Check, X } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, Check, X } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Settings } from "@shared/schema";
 
@@ -201,7 +201,7 @@ export default function AdminSettings() {
                 {/* Clover Integration Settings */}
                 <div>
                   <div className="flex items-center gap-2 mb-6">
-                    <Settings className="h-6 w-6 text-primary" />
+                    <SettingsIcon className="h-6 w-6 text-primary" />
                     <h2 className="text-2xl font-semibold" data-testid="text-clover-title">
                       Clover Payment Integration
                     </h2>
