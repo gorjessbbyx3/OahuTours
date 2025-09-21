@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
+import { Button } from "@/components/ui/button";
 
 interface BookingCalendarProps {
   onDateSelect?: (date: Date) => void;
@@ -126,8 +127,8 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
               return (
                 <div className="space-y-2">
                   {dayBookings.map((booking) => (
-                    <div 
-                      key={booking.id} 
+                    <div
+                      key={booking.id}
                       className="text-sm p-2 bg-muted rounded-lg"
                       data-testid={`booking-${booking.id}`}
                     >
@@ -137,7 +138,7 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
                       <div className="text-muted-foreground" data-testid={`booking-details-${booking.id}`}>
                         {booking.numberOfGuests} guests • ${booking.totalAmount}
                       </div>
-                      <Badge 
+                      <Badge
                         variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
                         data-testid={`booking-status-${booking.id}`}
                       >

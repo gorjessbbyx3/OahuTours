@@ -1,4 +1,3 @@
-
 import { storage } from "./storage";
 import type { InsertTour } from "@shared/schema";
 
@@ -61,7 +60,7 @@ const oahuTours: InsertTour[] = [
     price: "99.00",
     duration: 5,
     maxGroupSize: 6,
-    imageUrl: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
+    imageUrl: "https://images.unsplash.com/photo-1469474968028-56623f02e421e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
     isActive: true,
   },
   {
@@ -140,7 +139,7 @@ const oahuTours: InsertTour[] = [
 
 export async function seedTours() {
   console.log("Seeding tours...");
-  
+
   try {
     for (const tour of oahuTours) {
       await storage.createTour(tour);
@@ -152,13 +151,5 @@ export async function seedTours() {
   }
 }
 
-// Run seeding if this file is executed directly
-if (require.main === module) {
-  seedTours().then(() => {
-    console.log("Seeding complete!");
-    process.exit(0);
-  }).catch((error) => {
-    console.error("Seeding failed:", error);
-    process.exit(1);
-  });
-}
+// Export the seed function for manual execution
+// To run: node -e "import('./seed-tours.js').then(m => m.seedTours())"

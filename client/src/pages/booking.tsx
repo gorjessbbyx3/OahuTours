@@ -101,8 +101,19 @@ export default function Booking() {
   };
 
   const handlePaymentSuccess = (paymentId: string) => {
+    if (!selectedDate) {
+      toast({
+        title: "Error",
+        description: "Please select a date before completing payment",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const bookingData = {
       ...form.getValues(),
+      bookingDate: selectedDate.toISOString(),
+      totalAmount,
       cloverPaymentId: paymentId,
       paymentStatus: 'paid' as const,
       status: 'confirmed' as const,
@@ -397,7 +408,15 @@ export default function Booking() {
                     onClick={handleContinueToPayment}
                     className="w-full"
                     size="lg"
-                    disabled={!form.formState.isValid || !selectedDate || !selectedTour}
+                    disabled={
+                      !selectedDate || 
+                      !selectedTour || 
+                      !form.watch('customerName') || 
+                      !form.watch('customerEmail') || 
+                      !form.watch('customerPhone') ||
+                      !form.watch('tourId') ||
+                      !form.watch('numberOfGuests')
+                    }
                     data-testid="button-continue-payment"
                   >
                     Continue to Payment
