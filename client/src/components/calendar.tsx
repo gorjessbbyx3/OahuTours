@@ -23,7 +23,7 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
   // Get bookings for the current month
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
-  
+
   const monthBookings = bookings.filter(booking => {
     const bookingDate = new Date(booking.bookingDate);
     return bookingDate >= monthStart && bookingDate <= monthEnd;
@@ -68,7 +68,7 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
             Day: ({ date, ...props }) => {
               const bookingCount = getDateBookingCount(date);
               const isBooked = isDateBooked(date);
-              
+
               return (
                 <div className="relative" data-testid={`calendar-day-${format(date, 'yyyy-MM-dd')}`}>
                   <div {...props} className={`${props.className} ${isBooked ? 'bg-primary/10' : ''}`} />
@@ -87,7 +87,7 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
           }}
           data-testid="calendar-component"
         />
-        
+
         {showBookings && (
           <div className="mt-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -106,7 +106,7 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
             {(() => {
               const dateKey = format(selectedDate, 'yyyy-MM-dd');
               const dayBookings = bookingsByDate[dateKey] || [];
-              
+
               if (dayBookings.length === 0) {
                 return (
                   <p className="text-sm text-muted-foreground" data-testid="no-bookings-message">
@@ -114,7 +114,7 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
                   </p>
                 );
               }
-              
+
               return (
                 <div className="space-y-2">
                   {dayBookings.map((booking) => (
