@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { seedTours } from "./seed-tours"; // Assuming seed-tours.ts exists and exports seedTours
+import { storage } from "./storage"; // Assuming storage.ts exists and exports storage
 
 const app = express();
 app.use(express.json());
@@ -36,6 +38,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// Seed tours if database is empty
+async function initializeData() {
+  try {
+    const tours = await storage.getTours();
+    if (tours.length === 0) {
+      console.log("No tours found, seeding database...");
+      await seedTours();
+    }
+  } catch (error) {
+    console.error("Error initializing data:", error);
+  }
+}
+
 (async () => {
   const server = await registerRoutes(app);
 
@@ -55,6 +70,9 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
+
+  // Initialize data after routes are set up
+  await initializeData();
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
