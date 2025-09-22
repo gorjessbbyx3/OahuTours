@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 export default function Footer() {
   const { user, isAuthenticated } = useAuth();
@@ -132,6 +133,18 @@ export default function Footer() {
                       Admin Portal
                     </span>
                   </Link>
+                </li>
+              )}
+              {!isAuthenticated && (
+                <li className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.location.href = '/api/login'}
+                    data-testid="footer-button-login"
+                  >
+                    Login
+                  </Button>
                 </li>
               )}
             </ul>

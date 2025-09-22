@@ -13,7 +13,6 @@ export default function Navigation() {
     { href: "/", label: "Home" },
     { href: "/packages", label: "Tour Packages" },
     { href: "/custom-tour", label: "Custom Tours" },
-    { href: "/booking", label: "Book Now" },
   ];
 
   return (
@@ -50,9 +49,14 @@ export default function Navigation() {
             </div>
           </div>
 
-          {/* Auth Section */}
+          {/* Book Now Button */}
           <div className="hidden md:flex items-center space-x-4">
-            {isAuthenticated ? (
+            <Link href="/booking">
+              <Button data-testid="button-book-now">
+                Book Now
+              </Button>
+            </Link>
+            {isAuthenticated && (
               <div className="flex items-center space-x-2">
                 {user?.profileImageUrl && (
                   <img 
@@ -74,13 +78,6 @@ export default function Navigation() {
                   Logout
                 </Button>
               </div>
-            ) : (
-              <Button
-                onClick={() => window.location.href = '/api/login'}
-                data-testid="button-login"
-              >
-                Login
-              </Button>
             )}
           </div>
 
@@ -123,8 +120,16 @@ export default function Navigation() {
                   </div>
                 </Link>
               )}
-              <div className="px-3 py-2">
-                {isAuthenticated ? (
+              <Link href="/booking" data-testid="mobile-link-book-now">
+                <div
+                  className="block px-3 py-2 text-base font-medium text-foreground hover:text-primary smooth-transition"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Book Now
+                </div>
+              </Link>
+              {isAuthenticated && (
+                <div className="px-3 py-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -134,16 +139,8 @@ export default function Navigation() {
                   >
                     Logout
                   </Button>
-                ) : (
-                  <Button
-                    onClick={() => window.location.href = '/api/login'}
-                    className="w-full"
-                    data-testid="mobile-button-login"
-                  >
-                    Login
-                  </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}
