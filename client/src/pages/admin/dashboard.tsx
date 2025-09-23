@@ -30,26 +30,42 @@ const adminBookingSchema = insertBookingSchema.extend({
 type AdminBookingFormData = z.infer<typeof adminBookingSchema>;
 
 export default function AdminDashboard() {
-  const { isAuthenticated, isLoading, user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [addBookingOpen, setAddBookingOpen] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Redirect if not authenticated or not admin
+  // Check admin authentication
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || !user?.isAdmin)) {
-      toast({
-        title: "Unauthorized",
-        description: "Admin access required. Redirecting to login...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
+    const adminAuth = localStorage.getItem("adminAuthenticated");
+    const adminUser = localStorage.getItem("adminUser");
+    
+    if (adminAuth === "true" && adminUser) {
+      try {
+        const user = JSON.parse(adminUser);
+        if (user.username === "HICUSTOUR" && user.isAdmin) {
+          setIsAdminAuthenticated(true);
+        } else {
+          // Invalid stored data, redirect to login
+          localStorage.removeItem("adminAuthenticated");
+          localStorage.removeItem("adminUser");
+          window.location.href = "/admin/login";
+        }
+      } catch {
+        // Invalid JSON, redirect to login
+        localStorage.removeItem("adminAuthenticated");
+        localStorage.removeItem("adminUser");
+        window.location.href = "/admin/login";
+      }
+    } else {
+      // Not authenticated, redirect to login
+      window.location.href = "/admin/login";
     }
-  }, [isAuthenticated, isLoading, user?.isAdmin, toast]);
+    
+    setIsLoading(false);
+  }, []);
 
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
     queryKey: ["/api/admin/bookings"],
@@ -159,7 +175,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!isAuthenticated || !user?.isAdmin) {
+  if (!isAdminAuthenticated) {
     return null;
   }
 
@@ -171,14 +187,27 @@ export default function AdminDashboard() {
           <h1 className="text-4xl font-light text-foreground" data-testid="text-dashboard-title">
             Admin Dashboard
           </h1>
-          <Link href="/admin/settings">
-            <Button variant="outline" data-testid="button-settings">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border border-current rounded" />
-                Settings
-              </div>
+          <div className="flex items-center gap-4">
+            <Link href="/admin/settings">
+              <Button variant="outline" data-testid="button-settings">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border border-current rounded" />
+                  Settings
+                </div>
+              </Button>
+            </Link>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                localStorage.removeItem("adminAuthenticated");
+                localStorage.removeItem("adminUser");
+                window.location.href = "/admin/login";
+              }}
+              data-testid="button-logout"
+            >
+              Logout
             </Button>
-          </Link>
+          </div>
         </div>
 
         {/* Dashboard Stats */}

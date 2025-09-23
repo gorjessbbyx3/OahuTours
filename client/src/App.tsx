@@ -10,6 +10,7 @@ import Home from "@/pages/home";
 import Packages from "@/pages/packages";
 import CustomTour from "@/pages/custom-tour";
 import Booking from "@/pages/booking";
+import AdminLogin from "@/pages/admin/login"; // Import AdminLogin
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminSettings from "@/pages/admin/settings";
 import NotFound from "@/pages/not-found";
@@ -26,6 +27,7 @@ function Router() {
           <Route path="/packages" component={Packages} />
           <Route path="/custom-tour" component={CustomTour} />
           <Route path="/booking" component={Booking} />
+          <Route path="/admin/login" component={AdminLogin} /> {/* Added AdminLogin route */}
           {isAuthenticated && user?.isAdmin && (
             <>
               <Route path="/admin/dashboard" component={AdminDashboard} />

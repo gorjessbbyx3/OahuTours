@@ -11,7 +11,6 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { ArrowLeft, Settings as SettingsIcon, Check, X } from "lucide-react";
@@ -28,25 +27,37 @@ const settingsFormSchema = insertSettingsSchema.extend({
 type SettingsFormData = z.infer<typeof settingsFormSchema>;
 
 export default function AdminSettings() {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const [testConnectionStatus, setTestConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Redirect if not authenticated or not admin
+  // Check admin authentication
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || !user?.isAdmin)) {
-      toast({
-        title: "Unauthorized",
-        description: "Admin access required. Redirecting to login...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
+    const adminAuth = localStorage.getItem("adminAuthenticated");
+    const adminUser = localStorage.getItem("adminUser");
+
+    if (adminAuth === "true" && adminUser) {
+      try {
+        const user = JSON.parse(adminUser);
+        if (user.username === "HICUSTOUR" && user.isAdmin) {
+          setIsAdminAuthenticated(true);
+        } else {
+          localStorage.removeItem("adminAuthenticated");
+          localStorage.removeItem("adminUser");
+          window.location.href = "/admin/login";
+        }
+      } catch {
+        localStorage.removeItem("adminAuthenticated");
+        localStorage.removeItem("adminUser");
+        window.location.href = "/admin/login";
+      }
+    } else {
+      window.location.href = "/admin/login";
     }
-  }, [isAuthenticated, isLoading, user?.isAdmin, toast]);
+
+    setIsLoading(false);
+  }, []);
 
   const { data: settings, isLoading: settingsLoading } = useQuery<Settings>({
     queryKey: ["/api/admin/settings"],
@@ -126,7 +137,7 @@ export default function AdminSettings() {
     const cloverAppId = form.getValues('cloverAppId');
     const cloverApiToken = form.getValues('cloverApiToken');
     const environment = form.getValues('cloverEnvironment');
-    
+
     if (!cloverAppId || !cloverApiToken) {
       toast({
         title: "Missing Information",
@@ -137,7 +148,7 @@ export default function AdminSettings() {
     }
 
     setTestConnectionStatus('testing');
-    
+
     try {
       // Test connection with a small test payment
       const response = await apiRequest("POST", "/api/create-clover-payment", {
@@ -156,7 +167,7 @@ export default function AdminSettings() {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         setTestConnectionStatus('success');
         toast({
@@ -171,7 +182,7 @@ export default function AdminSettings() {
           variant: "destructive",
         });
       }
-      
+
       setTimeout(() => setTestConnectionStatus('idle'), 3000);
     } catch (error) {
       setTestConnectionStatus('error');
@@ -180,7 +191,7 @@ export default function AdminSettings() {
         description: "Unable to connect to Clover. Please check your credentials and network connection.",
         variant: "destructive",
       });
-      
+
       setTimeout(() => setTestConnectionStatus('idle'), 3000);
     }
   };
@@ -189,7 +200,7 @@ export default function AdminSettings() {
     updateSettingsMutation.mutate(data);
   };
 
-  if (isLoading || settingsLoading) {
+  if (isLoading) {
     return (
       <div className="pt-24 pb-20 bg-muted min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -199,7 +210,7 @@ export default function AdminSettings() {
     );
   }
 
-  if (!isAuthenticated || !user?.isAdmin) {
+  if (!isAdminAuthenticated) {
     return null;
   }
 
@@ -230,7 +241,7 @@ export default function AdminSettings() {
                       Clover Payment Integration
                     </h2>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <FormField
                       control={form.control}
@@ -249,7 +260,7 @@ export default function AdminSettings() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="cloverApiToken"
@@ -268,7 +279,7 @@ export default function AdminSettings() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="cloverEnvironment"
@@ -290,7 +301,7 @@ export default function AdminSettings() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <Button 
                       type="button"
                       variant="outline"
@@ -328,7 +339,7 @@ export default function AdminSettings() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="contactEmail"
@@ -347,7 +358,7 @@ export default function AdminSettings() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="phoneNumber"
@@ -366,7 +377,7 @@ export default function AdminSettings() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="taxRate"
@@ -417,7 +428,7 @@ export default function AdminSettings() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="maxGroupSize"
@@ -438,7 +449,7 @@ export default function AdminSettings() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="advanceBookingDays"

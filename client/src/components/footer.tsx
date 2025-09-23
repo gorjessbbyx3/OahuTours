@@ -140,10 +140,10 @@ export default function Footer() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.location.href = '/api/login'}
+                    onClick={() => window.location.href = '/admin/login'}
                     data-testid="footer-button-login"
                   >
-                    Login
+                    Admin Login
                   </Button>
                 </li>
               )}
