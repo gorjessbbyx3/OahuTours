@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import BookingCalendar from "@/components/calendar";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { 
@@ -22,7 +21,9 @@ import {
   Trash2,
   Eye,
   Filter,
-  Search
+  Search,
+  Calendar,
+  Clock
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -37,7 +38,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Booking, Tour } from "@shared/schema";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Tooltip } from "recharts";
 
 const adminBookingSchema = insertBookingSchema.extend({
   bookingDate: z.string(),
@@ -85,7 +86,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const adminAuth = localStorage.getItem("adminAuthenticated");
     const adminUser = localStorage.getItem("adminUser");
-    
+
     if (adminAuth === "true" && adminUser) {
       try {
         const user = JSON.parse(adminUser);
@@ -104,7 +105,7 @@ export default function AdminDashboard() {
     } else {
       window.location.href = "/admin/login";
     }
-    
+
     setIsLoading(false);
   }, []);
 
@@ -188,24 +189,28 @@ export default function AdminDashboard() {
     });
   };
 
-  // Calculate dashboard stats
-  const today = new Date();
-  const todayBookings = bookings.filter(booking => {
-    const bookingDate = new Date(booking.bookingDate);
-    return bookingDate.toDateString() === today.toDateString();
-  });
+  // Calculate real statistics
+  const stats = useMemo(() => {
+    const totalRevenue = bookings
+      .filter(b => b.paymentStatus === 'paid')
+      .reduce((total, b) => total + parseFloat(b.totalAmount), 0);
 
-  const thisWeek = new Date();
-  thisWeek.setDate(thisWeek.getDate() - thisWeek.getDay());
-  const weeklyRevenue = bookings
-    .filter(booking => {
-      const bookingDate = new Date(booking.bookingDate);
-      return bookingDate >= thisWeek && booking.paymentStatus === 'paid';
-    })
-    .reduce((total, booking) => total + parseFloat(booking.totalAmount), 0);
+    const todayBookings = bookings.filter(b => {
+      const bookingDate = new Date(b.bookingDate);
+      return bookingDate.toDateString() === today.toDateString();
+    }).length;
 
-  const activeTours = tours.filter(tour => tour.isActive).length;
-  const totalGuests = bookings.reduce((total, booking) => total + booking.numberOfGuests, 0);
+    const pendingBookings = bookings.filter(b => b.status === 'pending').length;
+
+    const activeToursCount = tours.filter(t => t.isActive).length;
+
+    return {
+      totalRevenue,
+      todayBookings,
+      pendingBookings,
+      activeToursCount
+    };
+  }, [bookings, tours, today]);
 
   // Filter bookings
   const filteredBookings = bookings.filter(booking => {
@@ -296,74 +301,51 @@ export default function AdminDashboard() {
         </div>
 
         {/* Enhanced Dashboard Stats with Gradient Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card data-testid="card-stat-bookings" className="bg-gradient-to-br from-blue-500/10 to-blue-600/20 border-blue-200/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">Today's Bookings</p>
-                  <p className="text-3xl font-bold text-blue-600" data-testid="text-stat-bookings">
-                    {todayBookings.length}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {todayBookings.length > 0 ? '+12% from yesterday' : 'No bookings yet'}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
-                  <CalendarCheck className="text-blue-600 h-6 w-6" />
-                </div>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="shadow-lg glass-effect" data-testid="card-total-revenue">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" data-testid="text-total-revenue">
+                ${stats.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
+              <p className="text-xs text-muted-foreground">All paid bookings</p>
             </CardContent>
           </Card>
-          
-          <Card data-testid="card-stat-revenue" className="bg-gradient-to-br from-green-500/10 to-green-600/20 border-green-200/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">Weekly Revenue</p>
-                  <p className="text-3xl font-bold text-green-600" data-testid="text-stat-revenue">
-                    ${weeklyRevenue.toFixed(0)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">+8.2% from last week</p>
-                </div>
-                <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
-                  <DollarSign className="text-green-600 h-6 w-6" />
-                </div>
-              </div>
+
+          <Card className="shadow-lg glass-effect" data-testid="card-todays-bookings">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Today's Bookings</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" data-testid="text-todays-bookings">{stats.todayBookings}</div>
+              <p className="text-xs text-muted-foreground">Scheduled for today</p>
             </CardContent>
           </Card>
-          
-          <Card data-testid="card-stat-tours" className="bg-gradient-to-br from-purple-500/10 to-purple-600/20 border-purple-200/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">Active Tours</p>
-                  <p className="text-3xl font-bold text-purple-600" data-testid="text-stat-tours">
-                    {activeTours}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">All tours operational</p>
-                </div>
-                <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
-                  <MapPin className="text-purple-600 h-6 w-6" />
-                </div>
-              </div>
+
+          <Card className="shadow-lg glass-effect" data-testid="card-pending-bookings">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Bookings</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" data-testid="text-pending-bookings">{stats.pendingBookings}</div>
+              <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
             </CardContent>
           </Card>
-          
-          <Card data-testid="card-stat-guests" className="bg-gradient-to-br from-orange-500/10 to-orange-600/20 border-orange-200/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">Total Guests</p>
-                  <p className="text-3xl font-bold text-orange-600" data-testid="text-stat-guests">
-                    {totalGuests}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">This month</p>
-                </div>
-                <div className="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center">
-                  <Users className="text-orange-600 h-6 w-6" />
-                </div>
-              </div>
+
+          <Card className="shadow-lg glass-effect" data-testid="card-active-tours">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Tours</CardTitle>
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" data-testid="text-active-tours">{stats.activeToursCount}</div>
+              <p className="text-xs text-muted-foreground">Tour packages available</p>
             </CardContent>
           </Card>
         </div>
@@ -416,20 +398,19 @@ export default function AdminDashboard() {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={tourDistribution}
+                    data={tourDistribution.length > 0 ? tourDistribution : [{ name: 'No Data', value: 100, color: 'hsl(var(--muted))' }]}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
+                    label={({ name, value }) => tourDistribution.length > 0 ? `${name}: ${value}%` : 'No bookings yet'}
                   >
-                    {tourDistribution.map((entry, index) => (
+                    {(tourDistribution.length > 0 ? tourDistribution : [{ name: 'No Data', value: 100, color: 'hsl(var(--muted))' }]).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <ChartTooltip />
+                  <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
@@ -469,7 +450,7 @@ export default function AdminDashboard() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="customerEmail"
@@ -483,7 +464,7 @@ export default function AdminDashboard() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="tourId"
@@ -508,7 +489,7 @@ export default function AdminDashboard() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="bookingDate"
@@ -526,7 +507,7 @@ export default function AdminDashboard() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="numberOfGuests"
@@ -547,7 +528,7 @@ export default function AdminDashboard() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <div className="flex justify-end space-x-4 pt-4">
                             <Button 
                               type="button" 
@@ -594,14 +575,14 @@ export default function AdminDashboard() {
                     const pendingPayments = bookings
                       .filter(b => b.paymentStatus === 'pending')
                       .reduce((total, b) => total + parseFloat(b.totalAmount), 0);
-                    
+
                     const completedToday = bookings
                       .filter(b => {
                         const bookingDate = new Date(b.bookingDate);
                         return bookingDate.toDateString() === today.toDateString() && b.paymentStatus === 'paid';
                       })
                       .reduce((total, b) => total + parseFloat(b.totalAmount), 0);
-                    
+
                     const refundsProcessed = bookings
                       .filter(b => b.paymentStatus === 'refunded')
                       .reduce((total, b) => total + parseFloat(b.totalAmount), 0);

@@ -44,6 +44,11 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
     return acc;
   }, {} as Record<string, Booking[]>);
 
+  const getBookingsForDate = (date: Date) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    return bookingsByDate[dateKey] || [];
+  };
+
   const isDateBooked = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
     return bookingsByDate[dateKey]?.length > 0;
@@ -53,6 +58,11 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
     const dateKey = format(date, 'yyyy-MM-dd');
     return bookingsByDate[dateKey]?.length || 0;
   };
+
+  // For disabling days that have no bookings if showBookings is false
+  const disabledDays = showBookings ? undefined : (date: Date) => !isDateBooked(date);
+  const bookedDates = showBookings ? bookings.map(booking => new Date(booking.bookingDate)) : [];
+
 
   return (
     <Card data-testid="calendar-container">
@@ -66,29 +76,34 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
           mode="single"
           selected={selectedDate}
           onSelect={onDateSelect}
-          month={currentMonth}
-          onMonthChange={setCurrentMonth}
-          className="rounded-md border"
+          disabled={disabledDays}
+          modifiers={{
+            booked: bookedDates,
+          }}
+          modifiersStyles={{
+            booked: { backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))' },
+          }}
           components={{
             Day: ({ date, ...props }) => {
-              const isBookingDate = bookings?.some(booking => {
-                const bookingDate = new Date(booking.bookingDate);
-                return bookingDate.toDateString() === date.toDateString();
-              });
+              const dayBookings = showBookings ? getBookingsForDate(date) : [];
+              const hasBookings = dayBookings.length > 0;
 
               return (
                 <div className="relative">
                   <button
                     {...props}
                     className={cn(
-                      props.className,
-                      isBookingDate && "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                      "h-9 w-9 p-0 font-normal hover:bg-accent hover:text-accent-foreground",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      date.toDateString() === selectedDate?.toDateString() && "bg-primary text-primary-foreground",
+                      hasBookings && "bg-blue-100 text-blue-900",
+                      props.disabled && "text-muted-foreground opacity-50"
                     )}
                   >
                     {date.getDate()}
                   </button>
-                  {isBookingDate && (
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"></div>
+                  {hasBookings && (
+                    <div className="absolute -top-1 -right-1 h-2 w-2 bg-blue-500 rounded-full" />
                   )}
                 </div>
               );
