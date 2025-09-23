@@ -28,12 +28,8 @@ function Router() {
           <Route path="/custom-tour" component={CustomTour} />
           <Route path="/booking" component={Booking} />
           <Route path="/admin/login" component={AdminLogin} /> {/* Added AdminLogin route */}
-          {isAuthenticated && user?.isAdmin && (
-            <>
-              <Route path="/admin/dashboard" component={AdminDashboard} />
-              <Route path="/admin/settings" component={AdminSettings} />
-            </>
-          )}
+          <Route path="/admin/dashboard" component={AdminDashboard} />
+          <Route path="/admin/settings" component={AdminSettings} />
           <Route component={NotFound} />
         </Switch>
       </main>
