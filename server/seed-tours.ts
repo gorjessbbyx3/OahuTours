@@ -10,7 +10,7 @@ const oahuTours: InsertTour[] = [
     price: "89.00",
     duration: 4,
     maxGroupSize: 8,
-    imageUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
+    imageUrl: "https://images.unsplash.com/photo-1608555843308-de045b6d5e3c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
     isActive: true,
   },
   {
@@ -20,7 +20,7 @@ const oahuTours: InsertTour[] = [
     price: "149.00",
     duration: 8,
     maxGroupSize: 12,
-    imageUrl: "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
+    imageUrl: "https://images.unsplash.com/photo-1538681105587-85640961bf8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
     isActive: true,
   },
   {
@@ -30,7 +30,7 @@ const oahuTours: InsertTour[] = [
     price: "129.00",
     duration: 5,
     maxGroupSize: 10,
-    imageUrl: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
+    imageUrl: "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
     isActive: true,
   },
   {
@@ -40,7 +40,7 @@ const oahuTours: InsertTour[] = [
     price: "79.00",
     duration: 6,
     maxGroupSize: 15,
-    imageUrl: "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
+    imageUrl: "https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
     isActive: true,
   },
   {
@@ -50,7 +50,7 @@ const oahuTours: InsertTour[] = [
     price: "99.00",
     duration: 4,
     maxGroupSize: 6,
-    imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
+    imageUrl: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
     isActive: true,
   },
   {
@@ -60,7 +60,7 @@ const oahuTours: InsertTour[] = [
     price: "159.00",
     duration: 8,
     maxGroupSize: 20,
-    imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
+    imageUrl: "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
     isActive: true,
   },
   {
@@ -103,7 +103,7 @@ const oahuTours: InsertTour[] = [
     price: "99.00",
     duration: 3,
     maxGroupSize: 8,
-    imageUrl: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
+    imageUrl: "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
     isActive: true,
   },
   {
@@ -113,7 +113,7 @@ const oahuTours: InsertTour[] = [
     price: "159.00",
     duration: 4,
     maxGroupSize: 50,
-    imageUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
+    imageUrl: "https://images.unsplash.com/photo-1551218808-94e220e084d2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600",
     isActive: true,
   },
   {
