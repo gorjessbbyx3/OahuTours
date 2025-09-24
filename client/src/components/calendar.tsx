@@ -63,6 +63,21 @@ export default function BookingCalendar({ onDateSelect, selectedDate, showBookin
   const disabledDays = showBookings ? undefined : (date: Date) => !isDateBooked(date);
   const bookedDates = showBookings ? bookings.map(booking => new Date(booking.bookingDate)) : [];
 
+  const checkAvailability = async (date: Date) => {
+    try {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const response = await fetch(`/api/bookings/availability/${dateStr}`);
+      if (!response.ok) throw new Error('Failed to check availability');
+
+      const bookings = await response.json();
+      // Simple availability logic - assume max 10 guests per day
+      const totalGuests = bookings.reduce((sum: number, booking: any) => sum + booking.numberOfGuests, 0);
+      return totalGuests < 10;
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      return true; // Default to available if check fails
+    }
+  };
 
   return (
     <Card data-testid="calendar-container">

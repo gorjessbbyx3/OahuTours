@@ -141,6 +141,7 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  status: true, // Omit status from insert schema
 });
 
 export const insertCustomTourSchema = createInsertSchema(customTours).omit({
