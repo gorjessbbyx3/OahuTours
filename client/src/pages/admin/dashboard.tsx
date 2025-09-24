@@ -82,31 +82,26 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Check admin authentication
+  // Check admin authentication with server validation
   useEffect(() => {
-    const adminAuth = localStorage.getItem("adminAuthenticated");
-    const adminUser = localStorage.getItem("adminUser");
-
-    if (adminAuth === "true" && adminUser) {
+    const checkAuth = async () => {
       try {
-        const user = JSON.parse(adminUser);
-        if (user.username === "HICUSTOUR" && user.isAdmin) {
+        const response = await apiRequest("GET", "/api/auth/user");
+        const user = await response.json();
+        if (user?.isAdmin) {
           setIsAdminAuthenticated(true);
         } else {
-          localStorage.removeItem("adminAuthenticated");
-          localStorage.removeItem("adminUser");
           window.location.href = "/admin/login";
         }
-      } catch {
-        localStorage.removeItem("adminAuthenticated");
-        localStorage.removeItem("adminUser");
+      } catch (error) {
+        console.error("Auth check failed:", error);
         window.location.href = "/admin/login";
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      window.location.href = "/admin/login";
-    }
+    };
 
-    setIsLoading(false);
+    checkAuth();
   }, []);
 
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({

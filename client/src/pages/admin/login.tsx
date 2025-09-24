@@ -47,6 +47,28 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-muted flex items-center justify-center px-4">
+
+  // Add Replit Auth integration
+  useEffect(() => {
+    // Check if user is already authenticated via Replit
+    const checkReplitAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/user', { credentials: 'include' });
+        if (response.ok) {
+          const user = await response.json();
+          if (user?.isAdmin) {
+            setLocation("/admin/dashboard");
+          }
+        }
+      } catch (error) {
+        console.error("Replit auth check failed:", error);
+      }
+    };
+
+    checkReplitAuth();
+  }, [setLocation]);
+
+
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">Admin Login</CardTitle>

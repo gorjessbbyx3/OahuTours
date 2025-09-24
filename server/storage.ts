@@ -22,14 +22,14 @@ export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+
   // Tour operations
   getTours(): Promise<Tour[]>;
   getTour(id: string): Promise<Tour | undefined>;
   createTour(tour: InsertTour): Promise<Tour>;
   updateTour(id: string, tour: Partial<InsertTour>): Promise<Tour>;
   deleteTour(id: string): Promise<void>;
-  
+
   // Booking operations
   getBookings(): Promise<Booking[]>;
   getBooking(id: string): Promise<Booking | undefined>;
@@ -37,12 +37,12 @@ export interface IStorage {
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: string, booking: Partial<InsertBooking>): Promise<Booking>;
   deleteBooking(id: string): Promise<void>;
-  
+
   // Custom tour operations
   getCustomTours(): Promise<CustomTour[]>;
   createCustomTour(customTour: InsertCustomTour): Promise<CustomTour>;
   updateCustomTour(id: string, customTour: Partial<InsertCustomTour>): Promise<CustomTour>;
-  
+
   // Settings operations
   getSettings(): Promise<Settings | undefined>;
   updateSettings(settings: InsertSettings): Promise<Settings>;
@@ -50,9 +50,12 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   // User operations
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+  async getUser(userId: string): Promise<User | undefined> {
+    let user = await db.select().from(users).where(eq(users.id, userId));
+    if (!user || user.length === 0) {
+      return undefined; // User not found
+    }
+    return user[0];
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
@@ -173,7 +176,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateSettings(settingsData: InsertSettings): Promise<Settings> {
     const existingSettings = await this.getSettings();
-    
+
     if (existingSettings) {
       const [updatedSettings] = await db
         .update(settings)
