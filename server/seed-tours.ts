@@ -131,15 +131,80 @@ const oahuTours: InsertTour[] = [
 export async function seedTours() {
   console.log("Seeding tours...");
 
-  try {
-    for (const tour of oahuTours) {
-      await storage.createTour(tour);
-      console.log(`Created tour: ${tour.name}`);
-    }
-    console.log("Tours seeded successfully!");
-  } catch (error) {
-    console.error("Error seeding tours:", error);
+  const existingTours = await storage.getTours();
+  if (existingTours.length > 0) {
+    console.log("Tours already exist, skipping seed");
+    return;
   }
+
+  const sampleTours = [
+    {
+      name: "Diamond Head Sunrise Hike",
+      description: "Experience the breathtaking sunrise from the top of Diamond Head crater. This early morning adventure includes transportation and a professional guide.",
+      price: "89",
+      duration: 4,
+      maxGroupSize: 12,
+      type: "day" as const,
+      isActive: true,
+      imageUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600"
+    },
+    {
+      name: "Hanauma Bay Snorkeling Adventure", 
+      description: "Discover the vibrant marine life at Hanauma Bay Nature Preserve. Includes snorkeling gear, transportation, and marine life education.",
+      price: "129",
+      duration: 6,
+      maxGroupSize: 8,
+      type: "day" as const,
+      isActive: true,
+      imageUrl: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600"
+    },
+    {
+      name: "Sunset Dinner Cruise",
+      description: "Elegant dining experience with stunning sunset views over the Pacific Ocean. Features live entertainment and premium cuisine.",
+      price: "189",
+      duration: 3,
+      maxGroupSize: 20,
+      type: "night" as const,
+      isActive: true,
+      imageUrl: "https://images.unsplash.com/photo-1520454974749-611b7248ffdb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600"
+    },
+    {
+      name: "Pearl Harbor Historic Tour",
+      description: "Visit the historic Pearl Harbor memorial and learn about this pivotal moment in American history. Includes audio tour and transportation.",
+      price: "95",
+      duration: 5,
+      maxGroupSize: 15,
+      type: "day" as const,
+      isActive: true,
+      imageUrl: "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600"
+    },
+    {
+      name: "Polynesian Cultural Center",
+      description: "Immerse yourself in authentic Polynesian culture with traditional shows, crafts, and cuisine from across the Pacific islands.",
+      price: "149",
+      duration: 8,
+      maxGroupSize: 25,
+      type: "day" as const,
+      isActive: true,
+      imageUrl: "https://images.unsplash.com/photo-1544366503-4f7395ac4edf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600"
+    },
+    {
+      name: "Waikiki Night Life Tour",
+      description: "Experience the vibrant nightlife of Waikiki with visits to the best bars, clubs, and live music venues. Transportation included.",
+      price: "79",
+      duration: 4,
+      maxGroupSize: 10,
+      type: "night" as const,
+      isActive: true,
+      imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600"
+    }
+  ];
+
+  for (const tour of sampleTours) {
+    await storage.createTour(tour);
+    console.log(`Created tour: ${tour.name}`);
+  }
+  console.log("Sample tours seeded successfully!");
 }
 
 // Export the seed function for manual execution
