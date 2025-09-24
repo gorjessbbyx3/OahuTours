@@ -111,7 +111,7 @@ export default function Home() {
             <Card className="overflow-hidden hover-scale" data-testid="card-preview-diamond">
               <div className="relative h-48">
                 <img 
-                  src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&h=600" 
+                  src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600" 
                   alt="Diamond Head Adventure" 
                   className="w-full h-full object-cover"
                 />
@@ -133,7 +133,7 @@ export default function Home() {
             <Card className="overflow-hidden hover-scale" data-testid="card-preview-snorkel">
               <div className="relative h-48">
                 <img 
-                  src="https://images.unsplash.com/photo-1546026423-cc4642628d2b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&h=600" 
+                  src="https://images.unsplash.com/photo-1583212292454-1fe6229603b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600" 
                   alt="Hanauma Bay Snorkel" 
                   className="w-full h-full object-cover"
                 />
@@ -155,7 +155,7 @@ export default function Home() {
             <Card className="overflow-hidden hover-scale" data-testid="card-preview-sunset">
               <div className="relative h-48">
                 <img 
-                  src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&h=600" 
+                  src="https://images.unsplash.com/photo-1520454974749-611b7248ffdb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600" 
                   alt="Sunset Dinner Cruise" 
                   className="w-full h-full object-cover"
                 />

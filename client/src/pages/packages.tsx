@@ -63,7 +63,7 @@ export default function Packages() {
                 <Card key={tour.id} className="overflow-hidden shadow-lg hover-scale" data-testid={`card-tour-${tour.id}`}>
                   <div className="relative h-48">
                     <img 
-                      src={tour.imageUrl || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&h=600"} 
+                      src={tour.imageUrl || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600"} 
                       alt={tour.name} 
                       className="w-full h-full object-cover"
                     />
@@ -104,7 +104,7 @@ export default function Packages() {
                 <Card key={tour.id} className="overflow-hidden shadow-lg hover-scale" data-testid={`card-tour-${tour.id}`}>
                   <div className="relative h-48">
                     <img 
-                      src={tour.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&h=600"} 
+                      src={tour.imageUrl || "https://images.unsplash.com/photo-1520454974749-611b7248ffdb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&h=600"} 
                       alt={tour.name} 
                       className="w-full h-full object-cover"
                     />
