@@ -7,15 +7,8 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Fallback background image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80')"
-          }}
-        />
-        {/* Video overlay */}
+      <div className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-900 to-teal-800">
+        {/* Video background */}
         <video
           className="absolute inset-0 w-full h-full object-cover"
           src="/attached_assets/8319972-uhd_2560_1440_25fps_1752328968739_1758698284953.mp4"
@@ -24,7 +17,7 @@ export default function Home() {
           muted
           playsInline
           onError={(e) => {
-            console.log('Video failed to load, using fallback background');
+            console.log('Video failed to load, using gradient background');
             e.currentTarget.style.display = 'none';
           }}
           onLoadStart={() => console.log('Video loading started')}
