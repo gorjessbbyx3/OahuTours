@@ -191,6 +191,8 @@ export default function AdminDashboard() {
 
   // Calculate real statistics
   const stats = useMemo(() => {
+    const today = new Date();
+    
     const totalRevenue = bookings
       .filter(b => b.paymentStatus === 'paid')
       .reduce((total, b) => total + parseFloat(b.totalAmount), 0);
@@ -210,7 +212,7 @@ export default function AdminDashboard() {
       pendingBookings,
       activeToursCount
     };
-  }, [bookings, tours, today]);
+  }, [bookings, tours]);
 
   // Filter bookings
   const filteredBookings = bookings.filter(booking => {
@@ -578,6 +580,7 @@ export default function AdminDashboard() {
 
                     const completedToday = bookings
                       .filter(b => {
+                        const today = new Date();
                         const bookingDate = new Date(b.bookingDate);
                         return bookingDate.toDateString() === today.toDateString() && b.paymentStatus === 'paid';
                       })
