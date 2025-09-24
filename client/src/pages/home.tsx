@@ -11,7 +11,7 @@ export default function Home() {
         {/* Video background */}
         <video
           className="absolute inset-0 w-full h-full object-cover"
-          src="/attached_assets/8319972-uhd_2560_1440_25fps_1752328968739_1758698284953.mp4"
+          src="/hero-video.mp4"
           autoPlay
           loop
           muted

@@ -5,31 +5,65 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertBookingSchema, insertCustomTourSchema, insertTourSchema, insertSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 import { createCloverClient } from "./cloverClient";
+import { Request, Response, NextFunction } from 'express'; // Import Request, Response, NextFunction
+
+// Placeholder for getUserFromToken - replace with actual implementation
+async function getUserFromToken(token: string): Promise<any | null> {
+  // This is a placeholder. In a real application, you would verify the token
+  // (e.g., JWT) and retrieve user information from your authentication provider
+  // or database.
+  // For demonstration purposes, let's assume a simple token validation.
+  if (token === 'valid-token') {
+    return {
+      id: 'user-id-from-token',
+      name: 'Test User',
+      claims: { sub: 'user-id-from-token', name: 'Test User', roles: [] }
+    };
+  }
+  return null;
+}
+
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+  const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+      const token = authHeader.substring(7);
+      const user = await getUserFromToken(token);
+
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+
+      req.user = user;
+      next();
+    } catch (error) {
+      console.error('Auth error:', error);
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+  };
+
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.json(null);
+    }
+
     try {
-      const userId = req.user.claims.sub;
-      const userName = req.user.claims.name;
-      let user = await storage.getUser(userId);
-      
-      // Create user if doesn't exist
-      if (!user) {
-        user = await storage.createUser({
-          id: userId,
-          name: userName,
-          isAdmin: userName === "HICUSTOUR" || req.user.claims.roles?.includes('admin')
-        });
-      }
-      
+      const token = authHeader.substring(7);
+      const user = await getUserFromToken(token);
       res.json(user);
     } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      res.json(null);
     }
   });
 
@@ -102,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Protected admin routes
-  app.get("/api/admin/bookings", isAuthenticated, async (req: any, res) => {
+  app.get("/api/admin/bookings", requireAuth, async (req: any, res: Response) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -117,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/bookings", isAuthenticated, async (req: any, res) => {
+  app.post("/api/admin/bookings", requireAuth, async (req: any, res: Response) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -136,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/custom-tours", isAuthenticated, async (req: any, res) => {
+  app.get("/api/admin/custom-tours", requireAuth, async (req: any, res: Response) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -151,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/tours", isAuthenticated, async (req: any, res) => {
+  app.get("/api/admin/tours", requireAuth, async (req: any, res: Response) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -166,7 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/tours", isAuthenticated, async (req: any, res) => {
+  app.post("/api/admin/tours", requireAuth, async (req: any, res: Response) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -186,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Settings routes
-  app.get("/api/admin/settings", isAuthenticated, async (req: any, res) => {
+  app.get("/api/admin/settings", requireAuth, async (req: any, res: Response) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -201,7 +235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/settings", isAuthenticated, async (req: any, res) => {
+  app.post("/api/admin/settings", requireAuth, async (req: any, res: Response) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -225,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { amount, bookingId } = req.body;
       const settings = await storage.getSettings();
-      
+
       if (!settings?.cloverApiToken || !settings?.cloverAppId) {
         return res.status(400).json({ message: "Clover not configured" });
       }
@@ -253,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { amount, currency, card, billing, test } = req.body;
       const settings = await storage.getSettings();
-      
+
       if (!settings?.cloverApiToken || !settings?.cloverAppId) {
         return res.status(400).json({ 
           success: false, 
@@ -324,7 +358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/clover/test-connection", isAuthenticated, async (req: any, res) => {
+  app.get("/api/admin/clover/test-connection", requireAuth, async (req: any, res: Response) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -341,7 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/clover/dashboard", isAuthenticated, async (req: any, res) => {
+  app.get("/api/clover/dashboard", requireAuth, async (req: any, res: Response) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       if (!user?.isAdmin) {
@@ -358,7 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         appId: settings.cloverAppId,
         environment: settings.cloverEnvironment as 'sandbox' | 'production',
       });
-      
+
       const dashboardUrl = cloverClient.getDashboardUrl();
       res.redirect(dashboardUrl);
     } catch (error) {
